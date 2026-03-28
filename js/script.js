@@ -1,3 +1,6 @@
+// =========================
+// 1) Grab elements from HTML
+// =========================
 // Find our date picker inputs on the page
 const startInput = document.getElementById('startDate');
 const endInput = document.getElementById('endDate');
@@ -11,15 +14,22 @@ const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
 const modalContent = imageModal.querySelector('.modal-content');
 
-// We keep the current API results here so click handlers can find the right item later
+// We keep the current API results here so click handlers can find the right item later.
+// Example: when card #2 is clicked, we use this array to find item at index 2.
 let currentImageItems = [];
 
+// =========================
+// 2) API configuration values
+// =========================
 // NASA APOD API info
 const APOD_URL = 'https://api.nasa.gov/planetary/apod';
 const API_KEY = 'vObOdgJVNtJewP7aB1LiOuoLftcE2WzKIrVOFXbZ';
 const RANGE_DAYS = 9;
 const LAST_RANGE_OFFSET_DAYS = RANGE_DAYS - 1;
 
+// =========================
+// 3) Initial setup + events
+// =========================
 // Call the setupDateInputs function from dateRange.js
 // This sets up the date pickers to:
 // - Default to a range of 9 days (from 9 days ago to today)
@@ -56,10 +66,12 @@ document.addEventListener('keydown', (event) => {
 fetchApodRange();
 
 function formatDateForInput(date) {
+  // Convert Date object to "YYYY-MM-DD", the format date inputs require.
   return date.toISOString().split('T')[0];
 }
 
 function createNineDayRange(startDateValue) {
+  // Build an exact 9-day window from one selected start date.
   const startDate = new Date(startDateValue);
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + LAST_RANGE_OFFSET_DAYS);
@@ -68,6 +80,7 @@ function createNineDayRange(startDateValue) {
 }
 
 function normalizeApodItems(apodItems) {
+  // API may return one object or an array. This guarantees we always have an array.
   const itemsArray = Array.isArray(apodItems) ? apodItems : [apodItems];
 
   // Show newest items first
@@ -75,6 +88,7 @@ function normalizeApodItems(apodItems) {
 }
 
 function createMediaHtml(item, index) {
+  // Video entries use thumbnail images. Normal entries use the image URL directly.
   if (item.media_type === 'video') {
     const videoThumbnailUrl = getVideoThumbnailUrl(item);
     return `<img class="video-thumbnail" src="${videoThumbnailUrl}" alt="Thumbnail for video: ${item.title}" />`;
@@ -84,6 +98,7 @@ function createMediaHtml(item, index) {
 }
 
 function createHelperText(item) {
+  // Give users guidance based on media type.
   if (item.media_type === 'video') {
     return `Video preview shown. <a href="${item.url}" target="_blank" rel="noopener noreferrer">Watch video</a>.`;
   }
@@ -92,6 +107,7 @@ function createHelperText(item) {
 }
 
 function createCardHtml(item, index) {
+  // Build one full HTML card per APOD result.
   const mediaHtml = createMediaHtml(item, index);
   const helperText = createHelperText(item);
   const isImageCard = item.media_type !== 'video';
@@ -113,6 +129,9 @@ function createCardHtml(item, index) {
 }
 
 async function fetchApodRange() {
+  // =========================
+  // 4) Main data flow function
+  // =========================
   // Read selected dates from input controls
   const startDate = startInput.value;
 
@@ -164,6 +183,7 @@ async function fetchApodRange() {
 }
 
 function showGalleryMessage(message, type = 'info') {
+  // Shared renderer for messages (loading, info, error)
   // Render one centered status card in the gallery (loading/info/error)
   const loadingSpinnerHtml =
     type === 'loading' ? '<span class="loading-spinner" aria-hidden="true"></span>' : '';
@@ -177,6 +197,9 @@ function showGalleryMessage(message, type = 'info') {
 }
 
 function renderGallery(items) {
+  // =========================
+  // 5) Render APOD cards
+  // =========================
   // Save this list so we can open the correct item when a card is clicked
   currentImageItems = items;
 
@@ -192,6 +215,9 @@ function renderGallery(items) {
 }
 
 function getVideoThumbnailUrl(item) {
+  // =========================
+  // 6) Video thumbnail helpers
+  // =========================
   // APOD provides thumbnail_url when thumbs=true, but not for every provider.
   if (item.thumbnail_url) {
     return item.thumbnail_url;
@@ -209,6 +235,7 @@ function getVideoThumbnailUrl(item) {
 }
 
 function getYouTubeVideoId(videoUrl) {
+  // Parse common YouTube URL formats and return a video ID if found.
   try {
     const parsedUrl = new URL(videoUrl);
     const host = parsedUrl.hostname.replace('www.', '');
@@ -239,6 +266,9 @@ function getYouTubeVideoId(videoUrl) {
 }
 
 function handleGalleryClick(event) {
+  // =========================
+  // 7) Gallery interactions
+  // =========================
   // Ignore clicks on links (like "Watch video") so default link behavior still works.
   if (event.target.closest('a')) {
     return;
@@ -263,6 +293,7 @@ function handleGalleryClick(event) {
 }
 
 function handleGalleryKeydown(event) {
+  // Keyboard support: Enter/Space opens the selected image card.
   const isOpenKey = event.key === 'Enter' || event.key === ' ';
 
   if (!isOpenKey) {
@@ -289,6 +320,9 @@ function handleGalleryKeydown(event) {
 }
 
 function openModal(item) {
+  // =========================
+  // 8) Modal open/close logic
+  // =========================
   // Fill modal fields with the selected APOD data
   modalImage.src = item.hdurl || item.url;
   modalImage.alt = item.title;
