@@ -9,6 +9,7 @@ const modalImage = document.getElementById('modalImage');
 const modalTitle = document.getElementById('modalTitle');
 const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
+const modalContent = imageModal.querySelector('.modal-content');
 
 // We keep the current API results here so click handlers can find the right item later
 let currentImageItems = [];
@@ -16,6 +17,8 @@ let currentImageItems = [];
 // NASA APOD API info
 const APOD_URL = 'https://api.nasa.gov/planetary/apod';
 const API_KEY = 'vObOdgJVNtJewP7aB1LiOuoLftcE2WzKIrVOFXbZ';
+const RANGE_DAYS = 9;
+const LAST_RANGE_OFFSET_DAYS = RANGE_DAYS - 1;
 
 // Call the setupDateInputs function from dateRange.js
 // This sets up the date pickers to:
@@ -26,8 +29,9 @@ setupDateInputs(startInput, endInput);
 // When user clicks the button, fetch and display APOD items
 getImagesButton.addEventListener('click', fetchApodRange);
 
-// Event delegation: one listener on gallery handles clicks for all card buttons
+// Event delegation: gallery handles interactions for clickable cards
 gallery.addEventListener('click', handleGalleryClick);
+gallery.addEventListener('keydown', handleGalleryKeydown);
 
 // Click listener for the modal close button
 closeModalButton.addEventListener('click', closeModal);
@@ -51,6 +55,63 @@ document.addEventListener('keydown', (event) => {
 // Load default date range immediately on page load
 fetchApodRange();
 
+function formatDateForInput(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function createNineDayRange(startDateValue) {
+  const startDate = new Date(startDateValue);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + LAST_RANGE_OFFSET_DAYS);
+
+  return { startDate, endDate, endDateValue: formatDateForInput(endDate) };
+}
+
+function normalizeApodItems(apodItems) {
+  const itemsArray = Array.isArray(apodItems) ? apodItems : [apodItems];
+
+  // Show newest items first
+  return itemsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function createMediaHtml(item, index) {
+  if (item.media_type === 'video') {
+    const videoThumbnailUrl = getVideoThumbnailUrl(item);
+    return `<img class="video-thumbnail" src="${videoThumbnailUrl}" alt="Thumbnail for video: ${item.title}" />`;
+  }
+
+  return `<img src="${item.url}" alt="${item.title}" />`;
+}
+
+function createHelperText(item) {
+  if (item.media_type === 'video') {
+    return `Video preview shown. <a href="${item.url}" target="_blank" rel="noopener noreferrer">Watch video</a>.`;
+  }
+
+  return 'Click the image to view full details.';
+}
+
+function createCardHtml(item, index) {
+  const mediaHtml = createMediaHtml(item, index);
+  const helperText = createHelperText(item);
+  const isImageCard = item.media_type !== 'video';
+  const clickClass = isImageCard ? ' is-clickable' : '';
+  const clickAttributes = isImageCard
+    ? ` data-index="${index}" role="button" tabindex="0" aria-label="Open details for ${item.title}"`
+    : '';
+
+  return `
+    <article class="card${clickClass}"${clickAttributes}>
+      <h2>${item.title}</h2>
+      <p class="date">${item.date}</p>
+      <div class="media">
+        ${mediaHtml}
+      </div>
+      <p>${helperText}</p>
+    </article>
+  `;
+}
+
 async function fetchApodRange() {
   // Read selected dates from input controls
   const startDate = startInput.value;
@@ -62,9 +123,7 @@ async function fetchApodRange() {
   }
 
   // Always collect exactly 9 consecutive days starting from the selected date.
-  const selectedStartDate = new Date(startDate);
-  const calculatedEndDate = new Date(selectedStartDate);
-  calculatedEndDate.setDate(selectedStartDate.getDate() + 8);
+  const { endDate: calculatedEndDate, endDateValue } = createNineDayRange(startDate);
 
   const todayDate = new Date();
 
@@ -74,7 +133,7 @@ async function fetchApodRange() {
     return;
   }
 
-  const endDate = calculatedEndDate.toISOString().split('T')[0];
+  const endDate = endDateValue;
 
   // Keep the end date input in sync with the exact 9-day range.
   endInput.value = endDate;
@@ -94,12 +153,7 @@ async function fetchApodRange() {
 
     // Convert response body from JSON text into JavaScript data
     const apodItems = await response.json();
-
-    // API can return a single object or an array, so normalize to an array
-    const itemsArray = Array.isArray(apodItems) ? apodItems : [apodItems];
-
-    // Show newest items first
-    itemsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const itemsArray = normalizeApodItems(apodItems);
 
     // Pass cleaned and sorted data to UI renderer
     renderGallery(itemsArray);
@@ -131,35 +185,7 @@ function renderGallery(items) {
     return;
   }
 
-  const cardsHtml = items
-    .map((item, index) => {
-      // data-index stores each item's position, so we can locate it on click
-      const videoThumbnailUrl = getVideoThumbnailUrl(item);
-
-      const mediaHtml =
-        item.media_type === 'video'
-          ? `<img class="video-thumbnail" src="${videoThumbnailUrl}" alt="Thumbnail for video: ${item.title}" />`
-          : `<button class="open-modal-btn" data-index="${index}" aria-label="Open details for ${item.title}">
-              <img src="${item.url}" alt="${item.title}" />
-            </button>`;
-
-      const helperText =
-        item.media_type === 'video'
-          ? `Video preview shown. <a href="${item.url}" target="_blank" rel="noopener noreferrer">Watch video</a>.`
-          : 'Click the image to view full details.';
-
-      return `
-        <article class="card">
-          <h2>${item.title}</h2>
-          <p class="date">${item.date}</p>
-          <div class="media">
-            ${mediaHtml}
-          </div>
-          <p>${helperText}</p>
-        </article>
-      `;
-    })
-    .join('');
+  const cardsHtml = items.map((item, index) => createCardHtml(item, index)).join('');
 
   // Replace old gallery content with the new cards
   gallery.innerHTML = cardsHtml;
@@ -213,15 +239,46 @@ function getYouTubeVideoId(videoUrl) {
 }
 
 function handleGalleryClick(event) {
-  // Find the closest modal button from where user clicked
-  const openButton = event.target.closest('.open-modal-btn');
+  // Ignore clicks on links (like "Watch video") so default link behavior still works.
+  if (event.target.closest('a')) {
+    return;
+  }
 
-  if (!openButton) {
+  // Find the closest clickable card from where user clicked.
+  const openCard = event.target.closest('.card.is-clickable');
+
+  if (!openCard) {
     return;
   }
 
   // Convert data-index text to a number (for array access)
-  const itemIndex = Number(openButton.dataset.index);
+  const itemIndex = Number(openCard.dataset.index);
+  const selectedItem = currentImageItems[itemIndex];
+
+  if (!selectedItem) {
+    return;
+  }
+
+  openModal(selectedItem);
+}
+
+function handleGalleryKeydown(event) {
+  const isOpenKey = event.key === 'Enter' || event.key === ' ';
+
+  if (!isOpenKey) {
+    return;
+  }
+
+  const focusedCard = event.target.closest('.card.is-clickable');
+
+  if (!focusedCard) {
+    return;
+  }
+
+  // Prevent page scroll on Space and trigger modal from keyboard.
+  event.preventDefault();
+
+  const itemIndex = Number(focusedCard.dataset.index);
   const selectedItem = currentImageItems[itemIndex];
 
   if (!selectedItem) {
@@ -240,7 +297,6 @@ function openModal(item) {
   modalExplanation.textContent = item.explanation;
 
   // Ensure the modal's internal scrollbar starts from the top each time.
-  const modalContent = imageModal.querySelector('.modal-content');
   if (modalContent) {
     modalContent.scrollTop = 0;
   }

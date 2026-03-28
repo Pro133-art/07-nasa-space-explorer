@@ -143,6 +143,15 @@ button:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+.card.is-clickable {
+  cursor: pointer;
+}
+
+.card.is-clickable:focus-visible {
+  outline: 3px solid #1b3ea8;
+  outline-offset: 2px;
+}
+
 .card h2 {
   margin: 0;
   padding: 12px 16px 0;
