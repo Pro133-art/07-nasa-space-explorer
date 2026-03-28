@@ -87,14 +87,11 @@ async function fetchApodRange() {
     // API can return a single object or an array, so normalize to an array
     const itemsArray = Array.isArray(apodItems) ? apodItems : [apodItems];
 
-    // Keep only real images so the gallery matches the app goal
-    const imageItems = itemsArray.filter((item) => item.media_type === 'image');
-
     // Show newest items first
-    imageItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+    itemsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Pass cleaned and sorted data to UI renderer
-    renderGallery(imageItems);
+    renderGallery(itemsArray);
   } catch (error) {
     console.error('Failed to fetch APOD data:', error);
     gallery.innerHTML = '<p>Sorry, we could not load NASA images right now.</p>';
@@ -106,23 +103,43 @@ function renderGallery(items) {
   currentImageItems = items;
 
   if (items.length === 0) {
-    gallery.innerHTML = '<p>No images found for this date range. Try a different set of dates.</p>';
+    gallery.innerHTML = '<p>No APOD results found for this date range. Try a different set of dates.</p>';
     return;
   }
 
   const cardsHtml = items
     .map((item, index) => {
       // data-index stores each item's position, so we can locate it on click
+      const embedUrl = item.media_type === 'video' ? getEmbeddableVideoUrl(item.url) : null;
+
+      const mediaHtml =
+        item.media_type === 'video'
+          ? embedUrl
+            ? `<div class="video-wrapper">
+                <iframe src="${embedUrl}" title="${item.title}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+              </div>`
+            : `<div class="video-fallback">
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer">Open video in a new tab</a>
+              </div>`
+          : `<button class="open-modal-btn" data-index="${index}" aria-label="Open details for ${item.title}">
+              <img src="${item.url}" alt="${item.title}" />
+            </button>`;
+
+      const helperText =
+        item.media_type === 'video'
+          ? embedUrl
+            ? 'Embedded video from APOD.'
+            : 'This provider does not allow embedding. Use the link above.'
+          : 'Click the image to view full details.';
+
       return `
         <article class="card">
           <h2>${item.title}</h2>
           <p class="date">${item.date}</p>
           <div class="media">
-            <button class="open-modal-btn" data-index="${index}" aria-label="Open details for ${item.title}">
-              <img src="${item.url}" alt="${item.title}" />
-            </button>
+            ${mediaHtml}
           </div>
-          <p>Click the image to view full details.</p>
+          <p>${helperText}</p>
         </article>
       `;
     })
@@ -130,6 +147,48 @@ function renderGallery(items) {
 
   // Replace old gallery content with the new cards
   gallery.innerHTML = cardsHtml;
+}
+
+function getEmbeddableVideoUrl(videoUrl) {
+  // Some APOD videos use watch-page URLs that do not work inside iframes.
+  // This converts known providers (YouTube/Vimeo) to embed URLs.
+  try {
+    const parsedUrl = new URL(videoUrl);
+    const host = parsedUrl.hostname.replace('www.', '');
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      if (parsedUrl.pathname === '/watch') {
+        const videoId = parsedUrl.searchParams.get('v');
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+
+      if (parsedUrl.pathname.startsWith('/embed/')) {
+        return parsedUrl.toString();
+      }
+
+      if (parsedUrl.pathname.startsWith('/shorts/')) {
+        const videoId = parsedUrl.pathname.split('/')[2];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+    }
+
+    if (host === 'youtu.be') {
+      const videoId = parsedUrl.pathname.slice(1);
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+
+    if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      const videoId = pathParts[pathParts.length - 1];
+      return videoId ? `https://player.vimeo.com/video/${videoId}` : null;
+    }
+
+    // Unknown provider: return null so UI can show an external link fallback.
+    return null;
+  } catch (error) {
+    console.error('Invalid video URL:', error);
+    return null;
+  }
 }
 
 function handleGalleryClick(event) {
