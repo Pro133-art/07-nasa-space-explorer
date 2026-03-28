@@ -101,9 +101,6 @@ async function fetchApodRange() {
     // Show newest items first
     itemsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // Use the newest APOD item as the page background image
-    updatePageBackground(itemsArray[0]);
-
     // Pass cleaned and sorted data to UI renderer
     renderGallery(itemsArray);
   } catch (error) {
@@ -185,18 +182,6 @@ function getVideoThumbnailUrl(item) {
   return 'img/nasa-worm-logo.png';
 }
 
-function updatePageBackground(item) {
-  if (!item) {
-    return;
-  }
-
-  // Videos need a thumbnail image, while image entries can use HD/full image URLs.
-  const backgroundImageUrl =
-    item.media_type === 'video' ? getVideoThumbnailUrl(item) : item.hdurl || item.url;
-
-  document.body.style.setProperty('--page-background-image', `url("${backgroundImageUrl}")`);
-}
-
 function getYouTubeVideoId(videoUrl) {
   try {
     const parsedUrl = new URL(videoUrl);
@@ -253,6 +238,12 @@ function openModal(item) {
   modalTitle.textContent = item.title;
   modalDate.textContent = item.date;
   modalExplanation.textContent = item.explanation;
+
+  // Ensure the modal's internal scrollbar starts from the top each time.
+  const modalContent = imageModal.querySelector('.modal-content');
+  if (modalContent) {
+    modalContent.scrollTop = 0;
+  }
 
   // Show modal and lock page scroll in the background
   imageModal.classList.add('is-visible');

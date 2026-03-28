@@ -9,13 +9,13 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #f1f1f1;
-  --page-background-image: none;
+  --page-background-image: url("img/Screenshot 2026-03-27 223103.png");
   position: relative;
   padding: clamp(12px, 3vw, 20px);
 }
 
 body::before {
-  /* Full-page photo layer (set by JavaScript with the newest APOD image) */
+  /* Full-page photo layer fixed to the selected local image */
   content: "";
   position: fixed;
   inset: 0;
@@ -131,9 +131,10 @@ button:hover {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  aspect-ratio: 1 / 1;
+  height: auto;
 }
 
 /* Hover effect for cards */
@@ -165,8 +166,7 @@ button:hover {
 .card .media {
   margin: 8px 0 0;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  min-height: 180px;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -327,10 +327,13 @@ button:hover {
   /* Full-screen overlay behind the modal card */
   position: fixed;
   inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.75);
   z-index: 1000;
   padding: clamp(10px, 3vw, 20px);
-  overflow-y: auto;
+  overflow: hidden;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -343,10 +346,13 @@ button:hover {
   /* Centered content card that holds image details */
   position: relative;
   background: #fff;
-  max-width: 780px;
-  margin: clamp(10px, 4vw, 30px) auto;
+  width: min(620px, 92vw);
+  max-width: 620px;
+  max-height: calc(100dvh - clamp(20px, 6vw, 40px));
+  margin: 0;
   border-radius: 12px;
   padding: clamp(12px, 2.5vw, 18px);
+  overflow-y: auto;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
 
@@ -389,7 +395,7 @@ button:hover {
   /* Keep selected image responsive and nicely cropped in the modal */
   width: 100%;
   border-radius: 8px;
-  max-height: min(52vh, 420px);
+  max-height: min(38vh, 320px);
   object-fit: cover;
 }
 
