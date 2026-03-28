@@ -36,7 +36,7 @@ imageModal.addEventListener('click', (event) => {
 
 // Close when user presses Escape
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !imageModal.classList.contains('hidden')) {
+  if (event.key === 'Escape' && imageModal.classList.contains('is-visible')) {
     closeModal();
   }
 });
@@ -142,11 +142,11 @@ function openModal(item) {
   modalDate.textContent = item.date;
   modalExplanation.textContent = item.explanation;
 
-  imageModal.classList.remove('hidden');
+  imageModal.classList.add('is-visible');
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-  imageModal.classList.add('hidden');
+  imageModal.classList.remove('is-visible');
   document.body.style.overflow = '';
 }

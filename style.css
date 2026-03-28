@@ -235,6 +235,10 @@ button:hover {
   z-index: 1000;
   padding: 20px;
   overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .modal-content {
@@ -244,6 +248,20 @@ button:hover {
   margin: 30px auto;
   border-radius: 12px;
   padding: 16px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.modal.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.modal.is-visible .modal-content {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .modal-close {
