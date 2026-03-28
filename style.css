@@ -37,6 +37,7 @@ body::before {
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   padding: clamp(10px, 2vw, 16px);
+  position: relative;
 }
 
 /* Header */
@@ -354,12 +355,9 @@ button:hover {
 }
 
 .modal {
-  /* Full-page overlay behind the modal card */
+  /* Full-container overlay behind the modal card */
   position: absolute;
-  top: var(--modal-scroll-y, 0px);
-  left: 0;
-  right: 0;
-  min-height: 100vh;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -13,7 +13,6 @@ const modalTitle = document.getElementById('modalTitle');
 const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
 const modalContent = imageModal.querySelector('.modal-content');
-let modalPositionRafId = null;
 
 // We keep the current API results here so click handlers can find the right item later.
 // Example: when card #2 is clicked, we use this array to find item at index 2.
@@ -62,10 +61,6 @@ document.addEventListener('keydown', (event) => {
     closeModal();
   }
 });
-
-// Keep the modal aligned with the page scroller while visible.
-window.addEventListener('scroll', requestModalPositionUpdate);
-window.addEventListener('resize', requestModalPositionUpdate);
 
 // Load default date range immediately on page load
 fetchApodRange();
@@ -342,42 +337,11 @@ function openModal(item) {
     modalContent.scrollTop = 0;
   }
 
-  // Match modal overlay position to current page scroll.
-  updateModalPosition();
-
   // Show modal overlay.
   imageModal.classList.add('is-visible');
 }
 
 function closeModal() {
-  // Hide modal and clear dynamic positioning state.
+  // Hide modal overlay.
   imageModal.classList.remove('is-visible');
-  imageModal.style.removeProperty('--modal-scroll-y');
-
-  if (modalPositionRafId !== null) {
-    cancelAnimationFrame(modalPositionRafId);
-    modalPositionRafId = null;
-  }
-}
-
-function requestModalPositionUpdate() {
-  // Skip work if modal is hidden.
-  if (!imageModal.classList.contains('is-visible')) {
-    return;
-  }
-
-  // Batch scroll/resize updates into one paint frame.
-  if (modalPositionRafId !== null) {
-    return;
-  }
-
-  modalPositionRafId = requestAnimationFrame(() => {
-    updateModalPosition();
-    modalPositionRafId = null;
-  });
-}
-
-function updateModalPosition() {
-  // Save current page scroll on a CSS custom property the modal uses for top.
-  imageModal.style.setProperty('--modal-scroll-y', `${window.scrollY}px`);
 }
