@@ -30,6 +30,12 @@ async function fetchApodRange() {
     return;
   }
 
+  // Make sure the range is valid before calling NASA's API
+  if (new Date(startDate) > new Date(endDate)) {
+    gallery.innerHTML = '<p>Start date must be before or equal to end date.</p>';
+    return;
+  }
+
   // Show loading message while API request is running
   gallery.innerHTML = '<p>Loading space images...</p>';
 
@@ -47,10 +53,13 @@ async function fetchApodRange() {
     // API can return a single object or an array, so normalize to an array
     const itemsArray = Array.isArray(apodItems) ? apodItems : [apodItems];
 
-    // Show newest items first
-    itemsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Keep only real images so the gallery matches the app goal
+    const imageItems = itemsArray.filter((item) => item.media_type === 'image');
 
-    renderGallery(itemsArray);
+    // Show newest items first
+    imageItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    renderGallery(imageItems);
   } catch (error) {
     console.error('Failed to fetch APOD data:', error);
     gallery.innerHTML = '<p>Sorry, we could not load NASA images right now.</p>';
@@ -59,23 +68,17 @@ async function fetchApodRange() {
 
 function renderGallery(items) {
   if (items.length === 0) {
-    gallery.innerHTML = '<p>No images found for this date range.</p>';
+    gallery.innerHTML = '<p>No images found for this date range. Try a different set of dates.</p>';
     return;
   }
 
   const cardsHtml = items
     .map((item) => {
-      // APOD can be an image or a video
-      const mediaHtml =
-        item.media_type === 'image'
-          ? `<img src="${item.url}" alt="${item.title}" />`
-          : `<iframe src="${item.url}" title="${item.title}" frameborder="0" allowfullscreen></iframe>`;
-
       return `
         <article class="card">
           <h2>${item.title}</h2>
           <p class="date">${item.date}</p>
-          <div class="media">${mediaHtml}</div>
+          <div class="media"><img src="${item.url}" alt="${item.title}" /></div>
           <p>${item.explanation}</p>
         </article>
       `;
