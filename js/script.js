@@ -74,7 +74,7 @@ async function fetchApodRange() {
   try {
     // Request APOD data for the selected date range
     const response = await fetch(
-      `${APOD_URL}?api_key=${API_KEY}&start_date=${startDate}&end_date=${endDate}`
+      `${APOD_URL}?api_key=${API_KEY}&start_date=${startDate}&end_date=${endDate}&thumbs=true`
     );
 
     if (!response.ok) {
@@ -110,26 +110,18 @@ function renderGallery(items) {
   const cardsHtml = items
     .map((item, index) => {
       // data-index stores each item's position, so we can locate it on click
-      const embedUrl = item.media_type === 'video' ? getEmbeddableVideoUrl(item.url) : null;
+      const videoThumbnailUrl = getVideoThumbnailUrl(item);
 
       const mediaHtml =
         item.media_type === 'video'
-          ? embedUrl
-            ? `<div class="video-wrapper">
-                <iframe src="${embedUrl}" title="${item.title}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-              </div>`
-            : `<div class="video-fallback">
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer">Open video in a new tab</a>
-              </div>`
+          ? `<img class="video-thumbnail" src="${videoThumbnailUrl}" alt="Thumbnail for video: ${item.title}" />`
           : `<button class="open-modal-btn" data-index="${index}" aria-label="Open details for ${item.title}">
               <img src="${item.url}" alt="${item.title}" />
             </button>`;
 
       const helperText =
         item.media_type === 'video'
-          ? embedUrl
-            ? 'Embedded video from APOD.'
-            : 'This provider does not allow embedding. Use the link above.'
+          ? `Video preview shown. <a href="${item.url}" target="_blank" rel="noopener noreferrer">Watch video</a>.`
           : 'Click the image to view full details.';
 
       return `
@@ -149,44 +141,49 @@ function renderGallery(items) {
   gallery.innerHTML = cardsHtml;
 }
 
-function getEmbeddableVideoUrl(videoUrl) {
-  // Some APOD videos use watch-page URLs that do not work inside iframes.
-  // This converts known providers (YouTube/Vimeo) to embed URLs.
+function getVideoThumbnailUrl(item) {
+  // APOD provides thumbnail_url when thumbs=true, but not for every provider.
+  if (item.thumbnail_url) {
+    return item.thumbnail_url;
+  }
+
+  // Build a YouTube thumbnail URL when APOD thumbnail is missing.
+  const youtubeVideoId = getYouTubeVideoId(item.url);
+
+  if (youtubeVideoId) {
+    return `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`;
+  }
+
+  // Last fallback image if no thumbnail is available.
+  return 'img/nasa-worm-logo.png';
+}
+
+function getYouTubeVideoId(videoUrl) {
   try {
     const parsedUrl = new URL(videoUrl);
     const host = parsedUrl.hostname.replace('www.', '');
 
     if (host === 'youtube.com' || host === 'm.youtube.com') {
       if (parsedUrl.pathname === '/watch') {
-        const videoId = parsedUrl.searchParams.get('v');
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        return parsedUrl.searchParams.get('v');
       }
 
       if (parsedUrl.pathname.startsWith('/embed/')) {
-        return parsedUrl.toString();
+        return parsedUrl.pathname.split('/')[2] || null;
       }
 
       if (parsedUrl.pathname.startsWith('/shorts/')) {
-        const videoId = parsedUrl.pathname.split('/')[2];
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        return parsedUrl.pathname.split('/')[2] || null;
       }
     }
 
     if (host === 'youtu.be') {
-      const videoId = parsedUrl.pathname.slice(1);
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      return parsedUrl.pathname.slice(1) || null;
     }
 
-    if (host === 'vimeo.com' || host === 'player.vimeo.com') {
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
-      const videoId = pathParts[pathParts.length - 1];
-      return videoId ? `https://player.vimeo.com/video/${videoId}` : null;
-    }
-
-    // Unknown provider: return null so UI can show an external link fallback.
     return null;
   } catch (error) {
-    console.error('Invalid video URL:', error);
+    console.error('Could not parse video URL for thumbnail:', error);
     return null;
   }
 }
