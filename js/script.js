@@ -58,18 +58,18 @@ async function fetchApodRange() {
 
   // Simple validation so beginners can see why nothing happens
   if (!startDate || !endDate) {
-    gallery.innerHTML = '<p>Please select both start and end dates.</p>';
+    showGalleryMessage('Please select both start and end dates.', 'info');
     return;
   }
 
   // Make sure the range is valid before calling NASA's API
   if (new Date(startDate) > new Date(endDate)) {
-    gallery.innerHTML = '<p>Start date must be before or equal to end date.</p>';
+    showGalleryMessage('Start date must be before or equal to end date.', 'info');
     return;
   }
 
   // Show loading message while API request is running
-  gallery.innerHTML = '<p>Loading space images...</p>';
+  showGalleryMessage('Loading space images...', 'loading');
 
   try {
     // Request APOD data for the selected date range
@@ -94,8 +94,21 @@ async function fetchApodRange() {
     renderGallery(itemsArray);
   } catch (error) {
     console.error('Failed to fetch APOD data:', error);
-    gallery.innerHTML = '<p>Sorry, we could not load NASA images right now.</p>';
+    showGalleryMessage('Sorry, we could not load NASA images right now.', 'error');
   }
+}
+
+function showGalleryMessage(message, type = 'info') {
+  // Render one centered status card in the gallery (loading/info/error)
+  const loadingSpinnerHtml =
+    type === 'loading' ? '<span class="loading-spinner" aria-hidden="true"></span>' : '';
+
+  gallery.innerHTML = `
+    <div class="gallery-message ${type}" role="status" aria-live="polite">
+      ${loadingSpinnerHtml}
+      <p>${message}</p>
+    </div>
+  `;
 }
 
 function renderGallery(items) {
@@ -103,7 +116,7 @@ function renderGallery(items) {
   currentImageItems = items;
 
   if (items.length === 0) {
-    gallery.innerHTML = '<p>No APOD results found for this date range. Try a different set of dates.</p>';
+    showGalleryMessage('No APOD results found for this date range. Try a different set of dates.', 'info');
     return;
   }
 
