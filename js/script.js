@@ -3,6 +3,14 @@ const startInput = document.getElementById('startDate');
 const endInput = document.getElementById('endDate');
 const gallery = document.getElementById('gallery');
 const getImagesButton = document.querySelector('.filters button');
+const imageModal = document.getElementById('imageModal');
+const closeModalButton = document.getElementById('closeModalButton');
+const modalImage = document.getElementById('modalImage');
+const modalTitle = document.getElementById('modalTitle');
+const modalDate = document.getElementById('modalDate');
+const modalExplanation = document.getElementById('modalExplanation');
+
+let currentImageItems = [];
 
 // NASA APOD API info
 const APOD_URL = 'https://api.nasa.gov/planetary/apod';
@@ -16,6 +24,22 @@ setupDateInputs(startInput, endInput);
 
 // When user clicks the button, fetch and display APOD items
 getImagesButton.addEventListener('click', fetchApodRange);
+gallery.addEventListener('click', handleGalleryClick);
+closeModalButton.addEventListener('click', closeModal);
+
+// Close when user clicks outside the modal card
+imageModal.addEventListener('click', (event) => {
+  if (event.target === imageModal) {
+    closeModal();
+  }
+});
+
+// Close when user presses Escape
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !imageModal.classList.contains('hidden')) {
+    closeModal();
+  }
+});
 
 // Load default date range immediately on page load
 fetchApodRange();
@@ -67,23 +91,62 @@ async function fetchApodRange() {
 }
 
 function renderGallery(items) {
+  currentImageItems = items;
+
   if (items.length === 0) {
     gallery.innerHTML = '<p>No images found for this date range. Try a different set of dates.</p>';
     return;
   }
 
   const cardsHtml = items
-    .map((item) => {
+    .map((item, index) => {
       return `
         <article class="card">
           <h2>${item.title}</h2>
           <p class="date">${item.date}</p>
-          <div class="media"><img src="${item.url}" alt="${item.title}" /></div>
-          <p>${item.explanation}</p>
+          <div class="media">
+            <button class="open-modal-btn" data-index="${index}" aria-label="Open details for ${item.title}">
+              <img src="${item.url}" alt="${item.title}" />
+            </button>
+          </div>
+          <p>Click the image to view full details.</p>
         </article>
       `;
     })
     .join('');
 
   gallery.innerHTML = cardsHtml;
+}
+
+function handleGalleryClick(event) {
+  const openButton = event.target.closest('.open-modal-btn');
+
+  if (!openButton) {
+    return;
+  }
+
+  const itemIndex = Number(openButton.dataset.index);
+  const selectedItem = currentImageItems[itemIndex];
+
+  if (!selectedItem) {
+    return;
+  }
+
+  openModal(selectedItem);
+}
+
+function openModal(item) {
+  modalImage.src = item.hdurl || item.url;
+  modalImage.alt = item.title;
+  modalTitle.textContent = item.title;
+  modalDate.textContent = item.date;
+  modalExplanation.textContent = item.explanation;
+
+  imageModal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  imageModal.classList.add('hidden');
+  document.body.style.overflow = '';
 }
