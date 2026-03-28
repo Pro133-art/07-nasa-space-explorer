@@ -9,13 +9,33 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #f1f1f1;
+  --page-background-image: none;
+  position: relative;
   padding: clamp(12px, 3vw, 20px);
+}
+
+body::before {
+  /* Full-page photo layer (set by JavaScript with the newest APOD image) */
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--page-background-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: scale(1.03);
+  z-index: -2;
 }
 
 /* Centered container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  padding: clamp(10px, 2vw, 16px);
 }
 
 /* Header */
