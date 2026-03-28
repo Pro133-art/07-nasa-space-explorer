@@ -54,19 +54,30 @@ fetchApodRange();
 async function fetchApodRange() {
   // Read selected dates from input controls
   const startDate = startInput.value;
-  const endDate = endInput.value;
 
   // Simple validation so beginners can see why nothing happens
-  if (!startDate || !endDate) {
-    showGalleryMessage('Please select both start and end dates.', 'info');
+  if (!startDate) {
+    showGalleryMessage('Please select a start date.', 'info');
     return;
   }
 
-  // Make sure the range is valid before calling NASA's API
-  if (new Date(startDate) > new Date(endDate)) {
-    showGalleryMessage('Start date must be before or equal to end date.', 'info');
+  // Always collect exactly 9 consecutive days starting from the selected date.
+  const selectedStartDate = new Date(startDate);
+  const calculatedEndDate = new Date(selectedStartDate);
+  calculatedEndDate.setDate(selectedStartDate.getDate() + 8);
+
+  const todayDate = new Date();
+
+  // If the selected start date is too recent, we cannot fetch a full 9-day set.
+  if (calculatedEndDate > todayDate) {
+    showGalleryMessage('Please choose an earlier start date so we can fetch 9 consecutive days.', 'info');
     return;
   }
+
+  const endDate = calculatedEndDate.toISOString().split('T')[0];
+
+  // Keep the end date input in sync with the exact 9-day range.
+  endInput.value = endDate;
 
   // Show loading message while API request is running
   showGalleryMessage('Loading space images...', 'loading');
