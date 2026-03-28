@@ -10,6 +10,7 @@ const modalTitle = document.getElementById('modalTitle');
 const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
 
+// We keep the current API results here so click handlers can find the right item later
 let currentImageItems = [];
 
 // NASA APOD API info
@@ -24,11 +25,16 @@ setupDateInputs(startInput, endInput);
 
 // When user clicks the button, fetch and display APOD items
 getImagesButton.addEventListener('click', fetchApodRange);
+
+// Event delegation: one listener on gallery handles clicks for all card buttons
 gallery.addEventListener('click', handleGalleryClick);
+
+// Click listener for the modal close button
 closeModalButton.addEventListener('click', closeModal);
 
 // Close when user clicks outside the modal card
 imageModal.addEventListener('click', (event) => {
+  // If user clicks the dark backdrop (not the white card), close modal
   if (event.target === imageModal) {
     closeModal();
   }
@@ -36,6 +42,7 @@ imageModal.addEventListener('click', (event) => {
 
 // Close when user presses Escape
 document.addEventListener('keydown', (event) => {
+  // Only close on Escape when modal is currently visible
   if (event.key === 'Escape' && imageModal.classList.contains('is-visible')) {
     closeModal();
   }
@@ -45,6 +52,7 @@ document.addEventListener('keydown', (event) => {
 fetchApodRange();
 
 async function fetchApodRange() {
+  // Read selected dates from input controls
   const startDate = startInput.value;
   const endDate = endInput.value;
 
@@ -64,6 +72,7 @@ async function fetchApodRange() {
   gallery.innerHTML = '<p>Loading space images...</p>';
 
   try {
+    // Request APOD data for the selected date range
     const response = await fetch(
       `${APOD_URL}?api_key=${API_KEY}&start_date=${startDate}&end_date=${endDate}`
     );
@@ -72,6 +81,7 @@ async function fetchApodRange() {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
+    // Convert response body from JSON text into JavaScript data
     const apodItems = await response.json();
 
     // API can return a single object or an array, so normalize to an array
@@ -83,6 +93,7 @@ async function fetchApodRange() {
     // Show newest items first
     imageItems.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // Pass cleaned and sorted data to UI renderer
     renderGallery(imageItems);
   } catch (error) {
     console.error('Failed to fetch APOD data:', error);
@@ -91,6 +102,7 @@ async function fetchApodRange() {
 }
 
 function renderGallery(items) {
+  // Save this list so we can open the correct item when a card is clicked
   currentImageItems = items;
 
   if (items.length === 0) {
@@ -100,6 +112,7 @@ function renderGallery(items) {
 
   const cardsHtml = items
     .map((item, index) => {
+      // data-index stores each item's position, so we can locate it on click
       return `
         <article class="card">
           <h2>${item.title}</h2>
@@ -115,16 +128,19 @@ function renderGallery(items) {
     })
     .join('');
 
+  // Replace old gallery content with the new cards
   gallery.innerHTML = cardsHtml;
 }
 
 function handleGalleryClick(event) {
+  // Find the closest modal button from where user clicked
   const openButton = event.target.closest('.open-modal-btn');
 
   if (!openButton) {
     return;
   }
 
+  // Convert data-index text to a number (for array access)
   const itemIndex = Number(openButton.dataset.index);
   const selectedItem = currentImageItems[itemIndex];
 
@@ -136,17 +152,20 @@ function handleGalleryClick(event) {
 }
 
 function openModal(item) {
+  // Fill modal fields with the selected APOD data
   modalImage.src = item.hdurl || item.url;
   modalImage.alt = item.title;
   modalTitle.textContent = item.title;
   modalDate.textContent = item.date;
   modalExplanation.textContent = item.explanation;
 
+  // Show modal and lock page scroll in the background
   imageModal.classList.add('is-visible');
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
+  // Hide modal and restore normal page scrolling
   imageModal.classList.remove('is-visible');
   document.body.style.overflow = '';
 }

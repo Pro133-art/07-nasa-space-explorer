@@ -151,6 +151,7 @@ button:hover {
 }
 
 .open-modal-btn {
+  /* Make the entire image area clickable without default button styles */
   display: block;
   width: 100%;
   border: none;
@@ -225,10 +226,12 @@ button:hover {
 }
 
 .hidden {
+  /* Utility class for fully hiding elements when needed */
   display: none;
 }
 
 .modal {
+  /* Full-screen overlay behind the modal card */
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
@@ -238,10 +241,13 @@ button:hover {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+
+  /* Fade transition for entering/exiting the overlay */
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .modal-content {
+  /* Centered content card that holds image details */
   position: relative;
   background: #fff;
   max-width: 780px;
@@ -250,21 +256,26 @@ button:hover {
   padding: 16px;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
+
+  /* Subtle motion to make modal feel smooth and polished */
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .modal.is-visible {
+  /* Active state: overlay can now be seen and interacted with */
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
 
 .modal.is-visible .modal-content {
+  /* Active state: content card fades/slides into place */
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
 .modal-close {
+  /* Small circular close control in the top-right corner */
   position: absolute;
   top: 8px;
   right: 8px;
@@ -282,6 +293,7 @@ button:hover {
 }
 
 #modalImage {
+  /* Keep selected image responsive and nicely cropped in the modal */
   width: 100%;
   border-radius: 8px;
   max-height: 420px;
@@ -289,16 +301,19 @@ button:hover {
 }
 
 #modalTitle {
+  /* Headline for the selected APOD item */
   margin-top: 14px;
   color: #212121;
 }
 
 .modal-date {
+  /* Secondary metadata text */
   margin-top: 8px;
   color: #777;
 }
 
 .modal-explanation {
+  /* Main descriptive text for the selected APOD item */
   margin-top: 10px;
   color: #333;
   line-height: 1.5;

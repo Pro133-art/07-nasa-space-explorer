@@ -8,6 +8,7 @@ const earliestDate = '1995-06-16';
 const today = new Date().toISOString().split('T')[0];
 
 function setupDateInputs(startInput, endInput) {
+  // Add min/max constraints so users can only pick valid APOD dates
   // Restrict date selection range from NASA's first image to today
   startInput.min = earliestDate;
   startInput.max = today;
@@ -22,9 +23,14 @@ function setupDateInputs(startInput, endInput) {
 
   // Automatically adjust end date to show exactly 9 days of images
   startInput.addEventListener('change', () => {
+    // Convert selected start date string into a Date object
     const startDate = new Date(startInput.value);
+
+    // Clone start date, then move forward 8 days (9 total including start)
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 8);
+
+    // Prevent end date from going beyond today's date
     endInput.value = endDate > new Date(today) ? today : endDate.toISOString().split('T')[0];
   });
 }
