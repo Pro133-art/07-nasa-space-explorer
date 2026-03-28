@@ -116,12 +116,13 @@ function createCardHtml(item, index) {
     ? ` data-index="${index}" role="button" tabindex="0" aria-label="Open details for ${item.title}"`
     : '';
 
+
   return `
     <article class="card${clickClass}"${clickAttributes}>
       <h2>${item.title}</h2>
-      <p class="date">${item.date}</p>
       <div class="media">
         ${mediaHtml}
+        <p class="date-badge">${item.date}</p>
       </div>
       <p>${helperText}</p>
     </article>
@@ -273,6 +274,7 @@ function handleGalleryClick(event) {
   if (event.target.closest('a')) {
     return;
   }
+
 
   // Find the closest clickable card from where user clicked.
   const openCard = event.target.closest('.card.is-clickable');
