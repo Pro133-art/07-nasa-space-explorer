@@ -111,9 +111,10 @@ button:hover {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  aspect-ratio: 1 / 1;
+  height: auto;
 }
 
 /* Hover effect for cards */
@@ -128,6 +129,11 @@ button:hover {
   font-size: 1rem;
   color: #212121;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card .date {
@@ -138,9 +144,9 @@ button:hover {
 }
 
 .card .media {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   width: 100%;
-  flex-grow: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,6 +156,7 @@ button:hover {
   /* Make the entire image area clickable without default button styles */
   display: block;
   width: 100%;
+  height: 100%;
   border: none;
   padding: 0;
   margin: 0;
@@ -159,7 +166,7 @@ button:hover {
 
 .card img {
   width: 100%;
-  height: clamp(190px, 30vw, 280px);
+  height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
@@ -179,7 +186,11 @@ button:hover {
   color: #666;
   font-size: 0.9rem;
   line-height: 1.4;
-  flex-grow: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card p a {
@@ -394,10 +405,6 @@ button:hover {
   .gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
-  }
-
-  .card img {
-    height: 240px;
   }
 
   input[type="date"],
