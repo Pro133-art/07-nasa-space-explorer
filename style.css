@@ -354,9 +354,12 @@ button:hover {
 }
 
 .modal {
-  /* Full-screen overlay behind the modal card */
-  position: fixed;
-  inset: 0;
+  /* Full-page overlay behind the modal card */
+  position: absolute;
+  top: var(--modal-scroll-y, 0px);
+  left: 0;
+  right: 0;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
