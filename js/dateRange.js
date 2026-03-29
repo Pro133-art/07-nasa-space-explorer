@@ -1,5 +1,4 @@
 
-// NOTE: You do not need to edit this file.
 // This helper is separated to keep date rules reusable and easy to understand.
 
 // NASA's APOD API only has images from June 16, 1995 onwards
@@ -40,7 +39,8 @@ function setupDateInputs(startInput, endInput) {
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 8);
 
-    // Prevent end date from going beyond today's date
+    // Prevent end date from going beyond today's date.
+    // If it would go too far, cap it at today.
     endInput.value = endDate > new Date(today) ? today : endDate.toISOString().split('T')[0];
   });
 }

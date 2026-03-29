@@ -1,4 +1,7 @@
-/* Global reset & box sizing */
+/*
+  Global reset:
+  Removes default browser spacing so layout starts from a clean baseline.
+*/
 * {
   box-sizing: border-box;
   margin: 0;
@@ -9,14 +12,17 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #f1f1f1;
-  /* CSS variable keeps the background image easy to swap in one place */
+  /* Keep the background image in one variable so changing it is quick later. */
   --page-background-image: url("img/Screenshot 2026-03-27 223103.png");
   position: relative;
   padding: clamp(12px, 3vw, 20px);
 }
 
 body::before {
-  /* Full-page photo layer fixed to the selected local image */
+  /*
+    Decorative background layer:
+    fixed + inset:0 makes it cover the full viewport behind all content.
+  */
   content: "";
   position: fixed;
   inset: 0;
@@ -28,7 +34,10 @@ body::before {
   z-index: -2;
 }
 
-/* Centered container */
+/*
+  Main content panel:
+  centered with a soft translucent background so text stays readable.
+*/
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -66,7 +75,7 @@ h1 {
   margin-right: 0;
 }
 
-/* Date‐picker & button row */
+/* Date inputs + button start stacked (mobile-first layout). */
 .filters {
   display: flex;
   flex-direction: column;
@@ -101,7 +110,7 @@ button:hover {
   background-color: #bfbfbf;
 }
 
-/* Stack horizontally on wider screens */
+/* At tablet/desktop widths, place controls in one row. */
 @media (min-width: 760px) {
   /* On larger screens, place date inputs and button in one row */
   .filters {
@@ -134,6 +143,7 @@ button:hover {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Grid rows: title, media area, helper text */
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   aspect-ratio: 1 / 1.08;
@@ -169,7 +179,7 @@ button:hover {
 }
 
 .card .media {
-  /* This wrapper keeps media centered inside each card */
+  /* Media frame keeps image/video thumbnail centered and visually contained. */
   position: relative;
   margin: 8px 12px 0;
   width: auto;
@@ -239,6 +249,7 @@ button:hover {
 }
 
 .card > p {
+  /* Clamp helper text so cards stay a consistent height in the grid. */
   margin: 0;
   padding: 10px 12px;
   color: #666;
@@ -307,6 +318,7 @@ button:hover {
 }
 
 .gallery-message {
+  /* Shared status panel used for loading/info/error states. */
   grid-column: 1 / -1;
   background: #fff;
   border: 1px solid #e0e0e0;
@@ -355,7 +367,10 @@ button:hover {
 }
 
 .modal {
-  /* Full-container overlay behind the modal card */
+  /*
+    Overlay that sits above the page.
+    It starts hidden, then .is-visible fades it in.
+  */
   position: absolute;
   inset: 0;
   display: flex;
@@ -373,7 +388,7 @@ button:hover {
 }
 
 .modal-content {
-  /* Centered content card that holds image details */
+  /* Scrollable content card that holds image details. */
   position: relative;
   background: #fff;
   width: min(620px, 92vw);
@@ -424,7 +439,7 @@ button:hover {
 }
 
 #modalImage {
-  /* Keep selected image responsive and nicely cropped in the modal */
+  /* Responsive image sizing so large images fit smaller screens cleanly. */
   width: 100%;
   border-radius: 8px;
   max-height: min(38vh, 320px);
@@ -451,7 +466,7 @@ button:hover {
 }
 
 @media (max-width: 480px) {
-  /* Phone-sized screens: reduce spacing and text sizes */
+  /* Phone-sized screens: tighten spacing and typography for readability. */
   .modal {
     align-items: center;
     padding: 10px;
@@ -492,7 +507,7 @@ button:hover {
 }
 
 @media (max-width: 360px) {
-  /* Very small screens: compact everything further */
+  /* Very small screens: compact layout further to prevent overflow. */
   body {
     padding: 8px;
   }
@@ -529,7 +544,7 @@ button:hover {
 }
 
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
-  /* Tablet landscape: use two columns and slightly tighter controls */
+  /* Tablet landscape: force two gallery columns and smaller form controls. */
   .container {
     max-width: 1040px;
   }

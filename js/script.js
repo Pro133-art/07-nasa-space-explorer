@@ -74,6 +74,7 @@ function createNineDayRange(startDateValue) {
   // Build an exact 9-day window from one selected start date.
   const startDate = new Date(startDateValue);
   const endDate = new Date(startDate);
+  // Add 8 days to include the start day itself (9 total days).
   endDate.setDate(startDate.getDate() + LAST_RANGE_OFFSET_DAYS);
 
   return { startDate, endDate, endDateValue: formatDateForInput(endDate) };
@@ -111,6 +112,9 @@ function createCardHtml(item, index) {
   const mediaHtml = createMediaHtml(item, index);
   const helperText = createHelperText(item);
   const isImageCard = item.media_type !== 'video';
+
+  // We only open the custom modal for image cards.
+  // Video cards stay as normal links so students can compare both patterns.
   const clickClass = isImageCard ? ' is-clickable' : '';
   const clickAttributes = isImageCard
     ? ` data-index="${index}" role="button" tabindex="0" aria-label="Open details for ${item.title}"`
@@ -143,6 +147,7 @@ async function fetchApodRange() {
   }
 
   // Always collect exactly 9 consecutive days starting from the selected date.
+  // This keeps API calls and UI output consistent.
   const { endDate: calculatedEndDate, endDateValue } = createNineDayRange(startDate);
 
   const todayDate = new Date();
@@ -276,7 +281,8 @@ function handleGalleryClick(event) {
   }
 
 
-  // Find the closest clickable card from where user clicked.
+  // Event delegation: we listen on the gallery once, then locate the clicked card.
+  // This works even after cards are replaced by new API results.
   const openCard = event.target.closest('.card.is-clickable');
 
   if (!openCard) {
@@ -309,6 +315,7 @@ function handleGalleryKeydown(event) {
   }
 
   // Prevent page scroll on Space and trigger modal from keyboard.
+  // This mirrors click behavior for better accessibility.
   event.preventDefault();
 
   const itemIndex = Number(focusedCard.dataset.index);
@@ -325,7 +332,8 @@ function openModal(item) {
   // =========================
   // 8) Modal open/close logic
   // =========================
-  // Fill modal fields with the selected APOD data
+  // Fill modal fields with the selected APOD data.
+  // Use hdurl when available for better quality in the larger modal view.
   modalImage.src = item.hdurl || item.url;
   modalImage.alt = item.title;
   modalTitle.textContent = item.title;
